@@ -1,7 +1,27 @@
 const Listing = require("../models/listing.js")
-const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
-const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({ accessToken: mapToken });
+//const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+//const mapToken = process.env.MAP_TOKEN;
+//const geocodingClient = mbxGeocoding({ accessToken: mapToken });
+const fetch = require('node-fetch');
+
+async function getCoordinates(location) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
+    const res = await fetch(url, {
+        headers: {
+            'User-Agent': 'YourAppName/1.0 (your@email.com)'  // Replace with real email/app name
+        }
+    });
+    const data = await res.json();
+    if (data.length > 0) {
+        return {
+            type: 'Point',
+            coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
+        };
+    } else {
+        return null; // fallback if not found
+    }
+}
+
 
 module.exports.index = async (req, res) => {
     const allListings = await Listing.find({});
@@ -26,12 +46,12 @@ module.exports.createListing = async (req, res, next) => {
     //let {title,description,image,price,location,country} = req.body;
     // let listing = req.body.listing;
 
-    let response = await geocodingClient
-        .forwardGeocode({
-            query: req.body.listing.location,
-            limit: 1
-        })
-        .send()
+    // let response = await geocodingClient
+    //     .forwardGeocode({
+    //         query: req.body.listing.location,
+    //         limit: 1
+    //     })
+    //     .send()
         
     let url = req.file.path;
     let filename = req.file.filename;
@@ -40,7 +60,10 @@ module.exports.createListing = async (req, res, next) => {
     newListing.owner = req.user._id;
     newListing.image = { url, filename };
 
-    newListing.geometry = response.body.features[0].geometry;
+    //newListing.geometry = response.body.features[0].geometry;
+    const geoData = await getCoordinates(req.body.listing.location);
+newListing.geometry = geoData;
+
 
     let savedListing = await newListing.save();
     console.log(savedListing);
