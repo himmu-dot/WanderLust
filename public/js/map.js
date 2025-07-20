@@ -1,15 +1,19 @@
-const map = L.map("map").setView(listing.geometry.coordinates.reverse(), 13);
+// 📌 Safely reverse without mutating original
+const coords = [...listing.geometry.coordinates].reverse(); // [lat, lon]
+
+const map = L.map("map").setView(coords, 13);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-L.marker(listing.geometry.coordinates).addTo(map)
+// 📌 Use the reversed coords
+L.marker(coords).addTo(map)
   .bindPopup(`<b>${listing.title}</b><br>${listing.location}`)
   .openPopup();
 
-// Call this function **only if coordinates are missing or fallback is needed**
+// ✅ Function to fetch coordinates from backend only if needed
 async function fetchCoordinates(location) {
   try {
     const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`);
@@ -21,10 +25,10 @@ async function fetchCoordinates(location) {
     if (data.length > 0) {
       const lat = parseFloat(data[0].lat);
       const lon = parseFloat(data[0].lon);
-      const coords = [lat, lon];
+      const fallbackCoords = [lat, lon];
 
-      map.setView(coords, 13);
-      L.marker(coords).addTo(map)
+      map.setView(fallbackCoords, 13);
+      L.marker(fallbackCoords).addTo(map)
         .bindPopup(`<b>${listing.title}</b><br>${listing.location}`)
         .openPopup();
     } else {
@@ -35,8 +39,11 @@ async function fetchCoordinates(location) {
   }
 }
 
-// 👇 Call only if listing.geometry.coordinates is missing or unreliable
-// fetchCoordinates(listing.location);
-if (!listing.geometry || !listing.geometry.coordinates) {
+// 📌 Only call if coordinates are missing or invalid
+if (
+  !listing.geometry ||
+  !Array.isArray(listing.geometry.coordinates) ||
+  listing.geometry.coordinates.length !== 2
+) {
   fetchCoordinates(listing.location);
 }

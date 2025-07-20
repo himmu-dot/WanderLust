@@ -4,23 +4,31 @@ const Listing = require("../models/listing.js")
 //const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 const fetch = require('node-fetch');
 
+require("dotenv").config();
+
 async function getCoordinates(location) {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
-    const res = await fetch(url, {
-        headers: {
-            'User-Agent': 'YourAppName/1.0 (your@email.com)'  // Replace with real email/app name
-        }
-    });
+    const token = process.env.NEWMAP_TOKEN;
+    const url = `https://us1.locationiq.com/v1/search.php?key=${token}&q=${encodeURIComponent(location)}&format=json`;
+
+    const res = await fetch(url);
+    
+    if (!res.ok) {
+        console.error(`LocationIQ error: ${res.status} ${res.statusText}`);
+        return null;
+    }
+
     const data = await res.json();
+
     if (data.length > 0) {
         return {
             type: 'Point',
             coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
         };
     } else {
-        return null; // fallback if not found
+        return null;
     }
 }
+
 
 
 module.exports.index = async (req, res) => {

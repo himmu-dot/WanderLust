@@ -1,7 +1,7 @@
 <% layout("/layouts/boilerplate") %>
 <script>
   const mapToken = "<%=process.env.MAP_TOKEN %>";
-  
+  const listing = <%-JSON.stringify(listing) %> ;
   
 </script>
 <body>
@@ -85,10 +85,7 @@
         <div id="map"></div>
     </div>
   </div>
-  <script>
-    const listing = <%-JSON.stringify(listing) %> ;
-    
-  </script>
+  
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/js/map.js"></script>
   
