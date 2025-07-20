@@ -43,6 +43,7 @@ module.exports.showListing = async (req, res) => {
 }
 
 module.exports.createListing = async (req, res, next) => {
+    console.log("Received location:", req.body.listing.location);
     //let {title,description,image,price,location,country} = req.body;
     // let listing = req.body.listing;
 
@@ -86,18 +87,40 @@ module.exports.renderEditForm = async (req, res) => {
 }
 
 module.exports.updateListing = async (req, res) => {
-    let {id} = req.params;
-    let listing = await Listing.findByIdAndUpdate(id, {...req.body.listing});
+    let { id } = req.params;
+    const updatedData = req.body.listing;
 
-    if(typeof req.file !== "undefined"){
+    const listing = await Listing.findById(id);
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+
+    // 🧠 If location has changed, update coordinates
+    if (updatedData.location && updatedData.location !== listing.location) {
+        const geoData = await getCoordinates(updatedData.location);
+        if (geoData) {
+            updatedData.geometry = geoData;
+        } else {
+            req.flash("error", "Could not find coordinates for the new location.");
+            return res.redirect(`/listings/${id}/edit`);
+        }
+    }
+
+    // 📝 Update the listing fields
+    Object.assign(listing, updatedData);
+
+    // 🖼️ Update image if new one is uploaded
+    if (typeof req.file !== "undefined") {
         let url = req.file.path;
         let filename = req.file.filename;
-        listing.image = {url, filename}
-        await listing.save();
+        listing.image = { url, filename };
     }
+
+    await listing.save();
     req.flash("success", "Listing Updated!");
     res.redirect(`/listings/${id}`);
-}
+};
 
 module.exports.destroyListing = async (req, res) => {
     let {id} = req.params;
