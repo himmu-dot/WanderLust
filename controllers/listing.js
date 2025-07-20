@@ -43,7 +43,7 @@ module.exports.showListing = async (req, res) => {
 }
 
 module.exports.createListing = async (req, res, next) => {
-    console.log("Received location:", req.body.listing.location);
+    //console.log("Received location:", req.body.listing.location);
     //let {title,description,image,price,location,country} = req.body;
     // let listing = req.body.listing;
 
@@ -67,7 +67,7 @@ newListing.geometry = geoData;
 
 
     let savedListing = await newListing.save();
-    console.log(savedListing);
+    //console.log(savedListing);
     req.flash("success", "New Listing Created");
     res.redirect("/listings");
     // console.log(listing);

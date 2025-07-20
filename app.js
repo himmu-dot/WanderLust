@@ -6,7 +6,7 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 //const MONGO_URL  = "mongodb://127.0.0.1:27017/wanderlust";
-const dbUrl = process.env.ATLASDB_URL;
+const dbUrl = "mongodb://127.0.0.1:27017/wanderlust"//process.env.ATLASDB_URL;
 const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
@@ -26,6 +26,9 @@ const listingsRouter = require("./routes/listing.js"); //requiring listings rout
 const reviewsRouter = require("./routes/review.js"); //requiring reviews routes
 const userRouter = require("./routes/user.js"); //
 const { getMaxListeners } = require("events");
+
+const geocodeRoutes = require("./routes/geocode"); // path to your new file
+app.use("/api", geocodeRoutes); // now /api/geocode?location=... will work
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname,"views"));
