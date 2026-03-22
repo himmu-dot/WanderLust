@@ -84,15 +84,14 @@ app.use((req, res, next) => {
     next();
 });
 
+require("dotenv").config();
+
 async function main() {
-    try {
-        await mongoose.connect(process.env.ATLASDB_URL);
-        console.log("Connected to DB");
-    } catch (err) {
-        console.log("DB Connection Error:", err);
-    }
+  await mongoose.connect(dbUrl);
+  console.log("Connected to DB");
 }
 
+main();
 main();
 
 // app.get("/demouser", async (req, res) => {
