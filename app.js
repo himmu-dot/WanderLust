@@ -45,9 +45,8 @@ const store = MongoStore.create({
     touchAfter: 24*3600, 
 });
 
-store.on("error", () => {
+store.on("error", (err) => {
     console.log("ERROR in mongo Session store", err);
-
 });
 
 const sessionOptions = {
@@ -85,15 +84,16 @@ app.use((req, res, next) => {
     next();
 });
 
-main()
-.then((res) => {
-    console.log("Connected to DB");
-}).catch((err) => {
-    console.log(err);
-});
 async function main() {
-    await mongoose.connect(dbUrl);
+    try {
+        await mongoose.connect(process.env.ATLASDB_URL);
+        console.log("Connected to DB");
+    } catch (err) {
+        console.log("DB Connection Error:", err);
+    }
 }
+
+main();
 
 // app.get("/demouser", async (req, res) => {
 //     let fakeUser = new User({
@@ -132,6 +132,8 @@ app.use((err, req, res, next) => {
     //res.status(statusCode).send(message);
 });
 
-app.listen(8080, () => {
-    console.log("Server Working");
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
