@@ -4,7 +4,7 @@ module.exports.renderSignupForm =  (req, res) => {
     res.render("users/signup.ejs");
 }
 
-module.exports.signup = async (req, res) => {
+module.exports.signup = async (req, res, next) => {
     try {
         let { username, email, password } = req.body;
         const newUser = new User({email, username});
@@ -12,10 +12,10 @@ module.exports.signup = async (req, res) => {
         console.log(registeredUser);
         req.login(registeredUser, (err) => {
             if(err){
-                return next();
+                return next(err);
             }
             req.flash("success", "Welcome to Wanderlust");
-            res.redirect("/listings");
+            return res.redirect("/listings");
         })
     } catch(e) {
         req.flash("error", e.message);
@@ -24,6 +24,7 @@ module.exports.signup = async (req, res) => {
 }
 
 module.exports.renderLoginForm =  (req, res) => {
+     console.log("LOGIN ROUTE HIT");
     res.render("users/login.ejs");
 }
 
