@@ -39,6 +39,7 @@ const listingSchema = new Schema({
         },
     }
     
+    
 });
 
 listingSchema.post("findByIdAndDelete", async(listing)=> {

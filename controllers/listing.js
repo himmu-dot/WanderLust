@@ -29,13 +29,48 @@ async function getCoordinates(location) {
     }
 }
 
-
-
 module.exports.index = async (req, res) => {
-    const allListings = await Listing.find({});
-    res.render("listings/index.ejs", {allListings});
-}
+    let { search, category, minPrice, maxPrice } = req.query;
 
+    let query = {};
+
+    // 🔍 SEARCH
+    if (search && search.trim() !== "") {
+        search = search.trim();
+
+        query.$or = [
+            { title: { $regex: search, $options: "i" } },
+            { location: { $regex: search, $options: "i" } },
+            { country: { $regex: search, $options: "i" } }
+        ];
+    }
+
+    // 🏷 CATEGORY
+    if (category && category !== "all") {
+        query.category = category;
+    }
+
+    // 💰 PRICE
+    if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = Number(minPrice);
+        if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    console.log("FINAL QUERY:", query); // 🔥 DEBUG
+
+    const allListings = await Listing.find(query);
+
+    console.log("RESULT COUNT:", allListings.length); // 🔥 DEBUG
+
+    res.render("listings/index.ejs", { 
+        allListings, 
+        search, 
+        category, 
+        minPrice, 
+        maxPrice 
+    });
+};
 module.exports.renderNewForm = (req, res) => {
     res.render("listings/new.ejs");
 }
